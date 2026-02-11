@@ -4,6 +4,12 @@ from ..models import Provider, Barrel, Invoice, InvoiceLine
 
 
 class ProviderSerializer(serializers.ModelSerializer):
+    barrel_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True,
+        source='barrels'
+    )
+
     class Meta:
         model = Provider
         fields = ["id", "name", "address", "tax_id"]
