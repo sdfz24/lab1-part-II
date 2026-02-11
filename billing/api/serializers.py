@@ -16,7 +16,7 @@ class ProviderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id", "has_barrels_to_bill", "billed_barrels", "barrels_to_bill"]
+        fields = ["id", "name", "address", "tax_id", "liters_to_bill", "barrel_ids", "billed_barrels", "barrels_to_bill"]
 
 
 class BarrelSerializer(serializers.ModelSerializer):
