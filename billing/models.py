@@ -38,6 +38,11 @@ class Invoice(models.Model):
     def __str__(self) -> str:
         return self.invoice_no
 
+    @property
+    def total_amount(self) -> Decimal:
+        total = sum(line.liters * line.unit_price for line in self.lines.all())
+        return total
+    
     @transaction.atomic
     def add_line_for_barrel(
         self,
