@@ -3,6 +3,7 @@ from rest_framework import serializers
 from ..models import Provider, Barrel, Invoice, InvoiceLine
 
 
+
 class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
@@ -43,11 +44,18 @@ class InvoiceLineCreateSerializer(serializers.Serializer):
             unit_price_per_liter=validated_data["unit_price"],
             description=validated_data["description"],
         )
-
-
+    
 class InvoiceSerializer(serializers.ModelSerializer):
-    lines = InvoiceLineNestedSerializer(many=True, read_only=True)
+    # 1. Definimos el campo calculado usando SerializerMethodField [cite: 113, 118, 160]
+    total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
-        fields = ["id", "invoice_no", "issued_on", "lines"]
+        # 2. Añadimos "total_amount" a la lista de campos[cite: 121].  
+        fields = ["id", "invoice_no", "issued_on", "total_amount"] 
+
+    # 3. Creamos la función para calcular el valor total [cite: 122, 123]
+    def get_total_amount(self, obj: Invoice):
+        # Multiplicamos litros por el precio unitario de cada línea y lo sumamos todo
+        return sum(line.liters * line.unit_price for line in obj.lines.all())
+
