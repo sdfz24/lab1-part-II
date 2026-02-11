@@ -6,7 +6,7 @@ from ..models import Provider, Barrel, Invoice, InvoiceLine
 class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id"]
+        fields = ["id", "name", "address", "tax_id", "has_barrels_to_bill"]
 
 
 class BarrelSerializer(serializers.ModelSerializer):
