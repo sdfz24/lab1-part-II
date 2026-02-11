@@ -5,15 +5,18 @@ from ..models import Provider, Barrel, Invoice, InvoiceLine
 
 
 class ProviderSerializer(serializers.ModelSerializer):
-    barrel_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        read_only=True,
-        source='barrels'
-    )
+    billed_barrels = serializers.SerializerMethodField()
+    barrels_to_bill = serializers.SerializerMethodField()
+
+    def get_billed_barrels(self, obj):
+        return list(obj.barrels.filter(billed=True).values_list("id", flat=True))
+
+    def get_barrels_to_bill(self, obj):
+        return list(obj.barrels.filter(billed=False).values_list("id", flat=True))
 
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id", "has_barrels_to_bill", "barrel_ids"]
+        fields = ["id", "name", "address", "tax_id", "has_barrels_to_bill", "billed_barrels", "barrels_to_bill"]
 
 
 class BarrelSerializer(serializers.ModelSerializer):
