@@ -54,6 +54,10 @@ class Invoice(models.Model):
         # Business rule from the prompt:
         if barrel.liters != liters:
             raise ValueError("liters must equal barrel.liters to bill the full barrel")
+        
+        # new rule: Check that the barrel has not already been invoiced
+        if barrel.billed:
+            raise ValueError("This barrel is already billed")
 
         new_line = InvoiceLine.objects.create(
             invoice=self,
