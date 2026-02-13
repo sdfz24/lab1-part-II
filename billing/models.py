@@ -18,9 +18,16 @@ class Provider(models.Model):
 
 
 class Barrel(models.Model):
+    class OilType(models.TextChoices):
+        EXTRA_VIRGIN = "EVOO", "Extra Virgin Olive Oil"
+        VIRGIN = "EVO", "Virgin Olive Oil"
+        REFINED = "ROO", "Refined Olive Oil"
+        POMACE = "OPO", "Olive Pomace Oil"
+
     provider = models.ForeignKey(Provider, related_name="barrels", on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
-    oil_type = models.CharField(max_length=128)
+    oil_type = models.CharField(max_length=10, choices=OilType.choices, default=OilType.EXTRA_VIRGIN)
+
     liters = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     billed = models.BooleanField(default=False)
 
