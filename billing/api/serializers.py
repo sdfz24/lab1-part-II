@@ -1,12 +1,22 @@
 from decimal import Decimal
 from rest_framework import serializers
 from ..models import Provider, Barrel, Invoice, InvoiceLine
+from django.db.models import Sum
+
 
 
 class ProviderSerializer(serializers.ModelSerializer):
+    liters_to_bill = serializers.SerializerMethodField()
+
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id"]
+        fields = ["id", "name", "address", "tax_id", "liters_to_bill"]
+
+    def get_liters_to_bill(self, obj):
+        total = obj.barrels.filter(billed=False).aggregate(total=Sum("liters"))["total"]
+        return total or 0
+
+
 
 
 class BarrelSerializer(serializers.ModelSerializer):
