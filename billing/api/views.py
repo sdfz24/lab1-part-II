@@ -12,12 +12,14 @@ from .serializers import (
     InvoiceLineNestedSerializer,
     InvoiceLineCreateSerializer,
 )
-from .filters import InvoiceFilter
+from .filters import InvoiceFilter, ProviderFilter
 
 
 class ProviderViewSet(viewsets.ModelViewSet):
     queryset = Provider.objects.all().order_by("id")
     serializer_class = ProviderSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProviderFilter
 
 
 class BarrelViewSet(viewsets.ModelViewSet):
