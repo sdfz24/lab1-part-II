@@ -30,6 +30,10 @@ class Barrel(models.Model):
     def __str__(self) -> str:
         return f"Barrel {self.number} ({self.oil_type})"
 
+    def is_totally_billed(self) -> bool:
+        billed_liters = self.invoice_lines.aggregate(total=models.Sum("liters"))["total"] or 0
+        return billed_liters >= self.liters
+
 
 class Invoice(models.Model):
     invoice_no = models.CharField(max_length=64, unique=True)
@@ -52,6 +56,9 @@ class Invoice(models.Model):
             raise ValueError("unit_price must be > 0")
 
         # Business rule from the prompt:
+        if barrel.is_totally_billed():
+            raise ValueError("The barrel is already fully billed")
+
         if barrel.liters != liters:
             raise ValueError("liters must equal barrel.liters to bill the full barrel")
         
@@ -66,8 +73,6 @@ class Invoice(models.Model):
             unit_price=unit_price_per_liter,
             description=description,
         )
-        barrel.billed = True
-        barrel.save(update_fields=["billed"])
         return new_line
 
 
