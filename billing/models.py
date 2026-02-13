@@ -18,9 +18,16 @@ class Provider(models.Model):
 
 
 class Barrel(models.Model):
+    class OilType(models.TextChoices):
+        EXTRA_VIRGIN = "EVOO", "Extra Virgin Olive Oil"
+        VIRGIN = "EVO", "Virgin Olive Oil"
+        REFINED = "ROO", "Refined Olive Oil"
+        POMACE = "OPO", "Olive Pomace Oil"
+
     provider = models.ForeignKey(Provider, related_name="barrels", on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
-    oil_type = models.CharField(max_length=128)
+    oil_type = models.CharField(max_length=10, choices=OilType.choices, default=OilType.EXTRA_VIRGIN)
+
     liters = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     billed = models.BooleanField(default=False)
 
@@ -29,6 +36,10 @@ class Barrel(models.Model):
 
     def __str__(self) -> str:
         return f"Barrel {self.number} ({self.oil_type})"
+
+    def is_totally_billed(self) -> bool:
+        billed_liters = self.invoice_lines.aggregate(total=models.Sum("liters"))["total"] or 0
+        return billed_liters >= self.liters
 
 
 class Invoice(models.Model):
@@ -52,6 +63,9 @@ class Invoice(models.Model):
             raise ValueError("unit_price must be > 0")
 
         # Business rule from the prompt:
+        if barrel.is_totally_billed():
+            raise ValueError("The barrel is already fully billed")
+
         if barrel.liters != liters:
             raise ValueError("liters must equal barrel.liters to bill the full barrel")
         
@@ -66,8 +80,6 @@ class Invoice(models.Model):
             unit_price=unit_price_per_liter,
             description=description,
         )
-        barrel.billed = True
-        barrel.save(update_fields=["billed"])
         return new_line
 
 

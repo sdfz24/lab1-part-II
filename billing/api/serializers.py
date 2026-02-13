@@ -5,9 +5,18 @@ from ..models import Provider, Barrel, Invoice, InvoiceLine
 
 
 class ProviderSerializer(serializers.ModelSerializer):
+    billed_barrels = serializers.SerializerMethodField()
+    barrels_to_bill = serializers.SerializerMethodField()
+
+    def get_billed_barrels(self, obj):
+        return list(obj.barrels.filter(billed=True).values_list("id", flat=True))
+
+    def get_barrels_to_bill(self, obj):
+        return list(obj.barrels.filter(billed=False).values_list("id", flat=True))
+
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id"]
+        fields = ["id", "name", "address", "tax_id", "liters_to_bill", "barrel_ids", "billed_barrels", "barrels_to_bill"]
 
 
 class BarrelSerializer(serializers.ModelSerializer):
@@ -23,7 +32,7 @@ class InvoiceLineNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InvoiceLine
-        fields = ["id", "barrel_id", "liters", "description", "unit_price"]
+        fields = ["id", "barrel_id", "liters", "description", "unit_price", "provider"]
 
 
 class InvoiceLineCreateSerializer(serializers.Serializer):
