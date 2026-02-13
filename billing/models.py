@@ -50,20 +50,23 @@ class Invoice(models.Model):
             raise ValueError("liters must be > 0")
         if unit_price_per_liter <= 0:
             raise ValueError("unit_price must be > 0")
+        locked_barrel = Barrel.objects.select_for_update().get(pk=barrel.pk)
+        if locked_barrel.billed:
+            raise ValueError("barrel is already billed")
 
         # Business rule from the prompt:
-        if barrel.liters != liters:
+        if locked_barrel.liters != liters:
             raise ValueError("liters must equal barrel.liters to bill the full barrel")
 
         new_line = InvoiceLine.objects.create(
             invoice=self,
-            barrel=barrel,
+            barrel=locked_barrel,
             liters=liters,
             unit_price=unit_price_per_liter,
             description=description,
         )
-        barrel.billed = True
-        barrel.save(update_fields=["billed"])
+        locked_barrel.billed = True
+        locked_barrel.save(update_fields=["billed"])
         return new_line
 
 

@@ -35,6 +35,11 @@ class InvoiceLineCreateSerializer(serializers.Serializer):
         min_value=Decimal("0.01"),
     )
 
+    def validate_barrel(self, barrel: Barrel) -> Barrel:
+        if barrel.billed:
+            raise serializers.ValidationError("This barrel is already billed.")
+        return barrel
+
     def create(self, validated_data: dict) -> InvoiceLine:
         invoice = self.context["invoice"]
         return invoice.add_line_for_barrel(
