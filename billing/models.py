@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from django.db import models, transaction
+from django.db.models import Sum
 from django.core.validators import MinValueValidator
 
 
@@ -30,6 +31,10 @@ class Barrel(models.Model):
     def __str__(self) -> str:
         return f"Barrel {self.number} ({self.oil_type})"
 
+    def is_totally_billed(self) -> bool:
+        billed_liters = self.invoice_lines.aggregate(total=Sum("liters"))["total"] or 0
+        return billed_liters >= self.liters
+
 
 class Invoice(models.Model):
     invoice_no = models.CharField(max_length=64, unique=True)
@@ -51,7 +56,7 @@ class Invoice(models.Model):
         if unit_price_per_liter <= 0:
             raise ValueError("unit_price must be > 0")
         locked_barrel = Barrel.objects.select_for_update().get(pk=barrel.pk)
-        if locked_barrel.billed:
+        if locked_barrel.is_totally_billed():
             raise ValueError("barrel is already billed")
 
         # Business rule from the prompt:
@@ -65,8 +70,6 @@ class Invoice(models.Model):
             unit_price=unit_price_per_liter,
             description=description,
         )
-        locked_barrel.billed = True
-        locked_barrel.save(update_fields=["billed"])
         return new_line
 
 
