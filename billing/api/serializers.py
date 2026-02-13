@@ -57,3 +57,10 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = ["id", "invoice_no", "issued_on", "lines"]
+
+    #hecho por Feria round 1: 
+    def get_total_amount(self, obj: Invoice) -> Decimal:
+        total = Decimal("0.00")
+        for line in obj.lines.all():
+            total += Decimal(line.liters) * line.unit_price
+        return total
