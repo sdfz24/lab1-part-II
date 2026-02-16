@@ -30,9 +30,16 @@ class Provider(models.Model):
 
 
 class Barrel(models.Model):
+    class OilType(models.TextChoices):
+        EXTRA_VIRGIN = "EVOO", "Extra Virgin Olive Oil"
+        VIRGIN = "EVO", "Virgin Olive Oil"
+        REFINED = "ROO", "Refined Olive Oil"
+        POMACE = "OPO", "Olive Pomace Oil"
+
     provider = models.ForeignKey(Provider, related_name="barrels", on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
-    oil_type = models.CharField(max_length=128)
+    oil_type = models.CharField(max_length=10, choices=OilType.choices, default=OilType.EXTRA_VIRGIN)
+
     liters = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     billed = models.BooleanField(default=False)
 
@@ -77,6 +84,10 @@ class Invoice(models.Model):
 
         if barrel.liters != liters:
             raise ValueError("liters must equal barrel.liters to bill the full barrel")
+        
+        # new rule: Check that the barrel has not already been invoiced
+        if barrel.billed:
+            raise ValueError("This barrel is already billed")
 
         new_line = InvoiceLine.objects.create(
             invoice=self,

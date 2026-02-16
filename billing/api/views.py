@@ -12,7 +12,8 @@ from .serializers import (
     InvoiceLineNestedSerializer,
     InvoiceLineCreateSerializer,
 )
-from .filters import InvoiceFilter, ProviderFilter
+from .filters import InvoiceFilter, BarrelFilter, ProviderFilter
+
 
 
 class ProviderViewSet(viewsets.ModelViewSet):
