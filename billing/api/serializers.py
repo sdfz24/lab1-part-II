@@ -33,7 +33,7 @@ class InvoiceLineNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InvoiceLine
-        fields = ["id", "barrel_id", "liters", "description", "unit_price"]
+        fields = ["id", "barrel_id", "liters", "description", "unit_price", "provider"]
 
 
 class InvoiceLineCreateSerializer(serializers.Serializer):
