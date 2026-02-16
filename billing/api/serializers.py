@@ -9,14 +9,15 @@ class ProviderSerializer(serializers.ModelSerializer):
     barrels_to_bill = serializers.SerializerMethodField()
 
     def get_billed_barrels(self, obj):
-        return list(obj.barrels.filter(billed=True).values_list("id", flat=True))
+        # Iterate over barrels to check dynamic billing status
+        return [b.id for b in obj.barrels.all() if b.is_totally_billed()]
 
     def get_barrels_to_bill(self, obj):
-        return list(obj.barrels.filter(billed=False).values_list("id", flat=True))
+        return [b.id for b in obj.barrels.all() if not b.is_totally_billed()]
 
     class Meta:
         model = Provider
-        fields = ["id", "name", "address", "tax_id", "liters_to_bill", "barrel_ids", "billed_barrels", "barrels_to_bill"]
+        fields = ["id", "name", "address", "tax_id", "has_barrels_to_bill", "liters_to_bill", "billed_barrels", "barrels_to_bill"]
 
 
 class BarrelSerializer(serializers.ModelSerializer):

@@ -14,7 +14,19 @@ class Provider(models.Model):
         return f"{self.name} ({self.tax_id})"
 
     def has_barrels_to_bill(self) -> bool:
-        return self.barrels.filter(billed=False).exists()
+        return (
+            self.barrels.annotate(billed_sum=models.Sum("invoice_lines__liters"))
+            .filter(
+                models.Q(billed_sum__lt=models.F("liters")) | models.Q(billed_sum__isnull=True)
+            )
+            .exists()
+        )
+
+    @property
+    def liters_to_bill(self) -> int:
+        total_liters = self.barrels.aggregate(t=models.Sum("liters"))["t"] or 0
+        billed_liters = self.barrels.aggregate(t=models.Sum("invoice_lines__liters"))["t"] or 0
+        return total_liters - billed_liters
 
 
 class Barrel(models.Model):
